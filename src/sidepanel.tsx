@@ -2,7 +2,7 @@ import { StrictMode, useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { VideoDetection } from './components/VideoDetection';
 import { ChatInterface } from './components/ChatInterface';
-import { useVideoStore } from './store/useVideoStore';
+import { useVideoStore, type Persona } from './store/useVideoStore';
 import { useSettingsStore } from './store/useSettingsStore';
 import { useChatStore } from './store/useChatStore';
 import './index.css';
@@ -58,7 +58,7 @@ function App() {
   }, [currentVideo?.videoId]);
 
   // Trigger research for a persona
-  const triggerPersonaResearch = useCallback(async (persona: typeof currentVideo, videoId: string) => {
+  const triggerPersonaResearch = useCallback(async (persona: Persona, videoId: string) => {
     if (!persona || !videoId) return;
 
     try {

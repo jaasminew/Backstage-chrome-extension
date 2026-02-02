@@ -137,13 +137,18 @@ async function handleMessage(
             console.log('[Background] Using cached data for video:', videoId);
             transcript = cached.transcript;
             personas = cached.personas;
+            console.log('[Background] Cached transcript length:', transcript?.length);
+            console.log('[Background] Cached personas count:', personas?.length);
           } else {
             console.log('[Background] No cache, fetching fresh data for video:', videoId);
 
             // 2. Fetch transcript
+            console.log('[Background] Fetching transcript...');
             transcript = await fetchTranscript(videoId);
+            console.log('[Background] Transcript fetched, length:', transcript?.length);
 
             // 3. Detect speakers using AI
+            console.log('[Background] Detecting speakers...');
             const aiClient = new UnifiedAIClient(apiKeys);
             personas = await detectSpeakers(
               transcript,
@@ -152,17 +157,21 @@ async function handleMessage(
               aiClient,
               selectedModel
             );
+            console.log('[Background] Speakers detected:', personas?.map(p => p.name));
 
             // 4. Cache the results (without research)
+            console.log('[Background] Caching data...');
             await setCachedVideoData({
               videoId,
               timestamp: Date.now(),
               transcript,
               personas,
             });
+            console.log('[Background] Cache saved');
           }
 
           // Return transcript and personas (research happens later on demand)
+          console.log('[Background] Returning response with transcript length:', transcript?.length);
           sendResponse({
             success: true,
             personas,

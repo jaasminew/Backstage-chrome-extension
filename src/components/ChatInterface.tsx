@@ -20,6 +20,11 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const initializedPersonaRef = useRef<string | null>(null);
 
+  // Debug on mount
+  useEffect(() => {
+    console.log('[ChatInterface] Component mounted');
+  }, []);
+
   const {
     messages,
     isStreaming,
@@ -48,11 +53,22 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
 
   // Build system prompt when persona changes
   useEffect(() => {
+    console.log('[ChatInterface] useEffect triggered with:', {
+      hasSelectedPersona: !!selectedPersona,
+      selectedPersonaName: selectedPersona?.name,
+      hasTranscript: !!transcript,
+      transcriptLength: transcript?.length,
+      hasCurrentVideo: !!currentVideo,
+      currentVideoId: currentVideo?.videoId,
+      initializedPersona: initializedPersonaRef.current,
+    });
+
     if (selectedPersona && transcript && currentVideo) {
       const personaKey = selectedPersona.name;
 
       // Only initialize if this persona hasn't been initialized yet
       if (initializedPersonaRef.current !== personaKey) {
+        console.log('[ChatInterface] Initializing for new persona:', personaKey);
         initializedPersonaRef.current = personaKey;
 
         // Build system prompt WITHOUT transcript (transcript goes in messages)
@@ -61,6 +77,8 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
           videoMetadata: currentVideo,
         });
         setSystemPrompt(prompt);
+
+        console.log('[ChatInterface] System prompt built, length:', prompt?.length);
 
         // Add initial messages
         // First message: transcript context
@@ -73,7 +91,11 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
 
         console.log('[ChatInterface] Initialized chat for persona:', personaKey);
         console.log('[ChatInterface] System prompt set:', !!prompt);
+      } else {
+        console.log('[ChatInterface] Skipping initialization, already done for:', personaKey);
       }
+    } else {
+      console.log('[ChatInterface] Cannot initialize - missing data');
     }
   }, [selectedPersona, transcript, currentVideo]);
 
@@ -116,12 +138,18 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
   // Send message
   const handleSend = async () => {
     const trimmedInput = input.trim();
+
+    console.log('[ChatInterface] handleSend called with:', {
+      hasInput: !!trimmedInput,
+      inputValue: trimmedInput,
+      isStreaming,
+      hasSystemPrompt: !!systemPrompt,
+      systemPromptLength: systemPrompt?.length,
+      systemPromptValue: systemPrompt?.substring(0, 100),
+    });
+
     if (!trimmedInput || isStreaming || !systemPrompt) {
-      console.log('[ChatInterface] Cannot send:', {
-        hasInput: !!trimmedInput,
-        isStreaming,
-        hasSystemPrompt: !!systemPrompt
-      });
+      console.log('[ChatInterface] Cannot send - requirements not met');
       return;
     }
 

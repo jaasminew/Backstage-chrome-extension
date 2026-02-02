@@ -15,6 +15,9 @@ function App() {
 
   const {
     currentVideo,
+    transcript,
+    personas,
+    selectedPersona,
     setCurrentVideo,
     setPersonas,
     setTranscript,
@@ -27,6 +30,19 @@ function App() {
 
   const { apiKeys, selectedModel, hasAnyApiKey } = useSettingsStore();
   const { clearMessages } = useChatStore();
+
+  // Debug: log store state changes
+  useEffect(() => {
+    console.log('[Sidepanel] Store state:', {
+      hasCurrentVideo: !!currentVideo,
+      videoId: currentVideo?.videoId,
+      hasTranscript: !!transcript,
+      transcriptLength: transcript?.length,
+      personasCount: personas.length,
+      hasSelectedPersona: !!selectedPersona,
+      selectedPersonaName: selectedPersona?.name,
+    });
+  }, [currentVideo, transcript, personas, selectedPersona]);
 
   // Get current video info on mount and listen for updates
   useEffect(() => {
@@ -89,6 +105,7 @@ function App() {
   const handleStartChat = useCallback(async () => {
     if (!currentVideo || isStarting) return;
 
+    console.log('[Sidepanel] Starting chat for video:', currentVideo.videoId);
     setIsStarting(true);
     setError(null);
 
@@ -98,18 +115,31 @@ function App() {
         data: { apiKeys, selectedModel },
       });
 
+      console.log('[Sidepanel] START_CHAT response:', {
+        success: response.success,
+        hasTranscript: !!response.transcript,
+        transcriptLength: response.transcript?.length,
+        personasCount: response.personas?.length,
+        personas: response.personas,
+      });
+
       if (response.success) {
+        console.log('[Sidepanel] Setting transcript, length:', response.transcript?.length);
         setTranscript(response.transcript);
+
+        console.log('[Sidepanel] Setting personas:', response.personas);
         setPersonas(response.personas);
 
         // Auto-select first persona if only one
         if (response.personas.length === 1) {
           const persona = response.personas[0];
+          console.log('[Sidepanel] Auto-selecting persona:', persona.name);
           setSelectedPersona(persona);
           // Trigger research in background for the selected persona
           triggerPersonaResearch(persona, currentVideo.videoId);
         }
 
+        console.log('[Sidepanel] Switching to chat view');
         setView('chat');
       } else {
         setError(response.error || 'Failed to start chat');

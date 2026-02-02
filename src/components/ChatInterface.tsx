@@ -55,18 +55,16 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
       });
       setSystemPrompt(prompt);
 
-      // Add initial messages if no messages yet
-      if (messages.length === 0) {
-        // First message: transcript context
-        const transcriptContext = buildTranscriptContextMessage(transcript);
-        addMessage({ role: 'assistant', content: transcriptContext });
+      // Add initial messages if chat is empty
+      // First message: transcript context
+      const transcriptContext = buildTranscriptContextMessage(transcript);
+      addMessage({ role: 'assistant', content: transcriptContext });
 
-        // Second message: greeting
-        const greeting = buildGreetingMessage(selectedPersona, currentVideo.title);
-        addMessage({ role: 'assistant', content: greeting });
-      }
+      // Second message: greeting
+      const greeting = buildGreetingMessage(selectedPersona, currentVideo.title);
+      addMessage({ role: 'assistant', content: greeting });
     }
-  }, [selectedPersona, transcript, currentVideo]);
+  }, [selectedPersona, transcript, currentVideo, addMessage, setSystemPrompt]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

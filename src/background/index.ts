@@ -29,6 +29,43 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 // Clear expired cache on startup
 clearExpiredCache();
 
+// Re-inject content scripts into existing YouTube tabs on extension reload
+async function reinjectContentScripts() {
+  const tabs = await chrome.tabs.query({ url: '*://*.youtube.com/*' });
+
+  // Get content script files from manifest
+  const manifest = chrome.runtime.getManifest();
+  const contentScripts = manifest.content_scripts?.[0]?.js || [];
+
+  if (contentScripts.length === 0) {
+    console.log('[Background] No content scripts found in manifest');
+    return;
+  }
+
+  for (const tab of tabs) {
+    if (tab.id) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: contentScripts,
+        });
+        console.log('[Background] Re-injected content script into tab:', tab.id);
+      } catch (error) {
+        // Tab might not be ready or accessible, ignore
+        console.log('[Background] Could not inject into tab:', tab.id, error);
+      }
+    }
+  }
+}
+
+// Run on extension install/update/reload
+chrome.runtime.onInstalled.addListener(() => {
+  reinjectContentScripts();
+});
+
+// Also run immediately on service worker startup
+reinjectContentScripts();
+
 // Handle messages from content script and side panel
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleMessage(message, sender, sendResponse);

@@ -5,7 +5,7 @@ export class GoogleClient implements AIClient {
   private client: GoogleGenerativeAI;
   private model: string;
 
-  constructor(apiKey: string, model: string = 'gemini-1.5-pro-latest') {
+  constructor(apiKey: string, model: string = 'gemini-3-flash-preview') {
     this.client = new GoogleGenerativeAI(apiKey);
     this.model = model;
   }

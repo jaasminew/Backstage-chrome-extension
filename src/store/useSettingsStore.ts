@@ -39,9 +39,11 @@ export const MODEL_OPTIONS = {
     { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
   ],
   google: [
+    { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)' },
+    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro (Preview)' },
+    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite' },
     { id: 'gemini-1.5-pro-latest', name: 'Gemini 1.5 Pro' },
     { id: 'gemini-1.5-flash-latest', name: 'Gemini 1.5 Flash' },
-    { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (Experimental)' },
   ],
   deepseek: [
     { id: 'deepseek-chat', name: 'DeepSeek Chat' },

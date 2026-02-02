@@ -41,15 +41,15 @@ function App() {
     const handleMessage = (message: { action: string; data?: unknown }) => {
       if (message.action === 'VIDEO_INFO_UPDATED') {
         const newVideo = message.data as typeof currentVideo;
-        
+
         // If video changed, reset state
         if (newVideo?.videoId !== currentVideo?.videoId) {
           reset();
           clearMessages();
           setView('detection');
+          setCurrentVideo(newVideo);
         }
-        
-        setCurrentVideo(newVideo);
+        // Don't call setCurrentVideo if video hasn't changed - it resets transcript!
       }
     };
 

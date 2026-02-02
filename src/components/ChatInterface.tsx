@@ -18,6 +18,7 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const initializedPersonaRef = useRef<string | null>(null);
 
   const {
     messages,
@@ -48,23 +49,33 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
   // Build system prompt when persona changes
   useEffect(() => {
     if (selectedPersona && transcript && currentVideo) {
-      // Build system prompt WITHOUT transcript (transcript goes in messages)
-      const prompt = buildSystemPrompt({
-        selectedPersona,
-        videoMetadata: currentVideo,
-      });
-      setSystemPrompt(prompt);
+      const personaKey = selectedPersona.name;
 
-      // Add initial messages if chat is empty
-      // First message: transcript context
-      const transcriptContext = buildTranscriptContextMessage(transcript);
-      addMessage({ role: 'assistant', content: transcriptContext });
+      // Only initialize if this persona hasn't been initialized yet
+      if (initializedPersonaRef.current !== personaKey) {
+        initializedPersonaRef.current = personaKey;
 
-      // Second message: greeting
-      const greeting = buildGreetingMessage(selectedPersona, currentVideo.title);
-      addMessage({ role: 'assistant', content: greeting });
+        // Build system prompt WITHOUT transcript (transcript goes in messages)
+        const prompt = buildSystemPrompt({
+          selectedPersona,
+          videoMetadata: currentVideo,
+        });
+        setSystemPrompt(prompt);
+
+        // Add initial messages
+        // First message: transcript context
+        const transcriptContext = buildTranscriptContextMessage(transcript);
+        addMessage({ role: 'assistant', content: transcriptContext });
+
+        // Second message: greeting
+        const greeting = buildGreetingMessage(selectedPersona, currentVideo.title);
+        addMessage({ role: 'assistant', content: greeting });
+
+        console.log('[ChatInterface] Initialized chat for persona:', personaKey);
+        console.log('[ChatInterface] System prompt set:', !!prompt);
+      }
     }
-  }, [selectedPersona, transcript, currentVideo, addMessage, setSystemPrompt]);
+  }, [selectedPersona, transcript, currentVideo]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -74,6 +85,8 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
   // Handle persona change
   const handlePersonaChange = async (persona: typeof selectedPersona) => {
     if (persona && persona.name !== selectedPersona?.name) {
+      // Reset initialization tracking
+      initializedPersonaRef.current = null;
       clearMessages();
       setSelectedPersona(persona);
 
@@ -103,7 +116,16 @@ export function ChatInterface({ onBack }: ChatInterfaceProps) {
   // Send message
   const handleSend = async () => {
     const trimmedInput = input.trim();
-    if (!trimmedInput || isStreaming || !systemPrompt) return;
+    if (!trimmedInput || isStreaming || !systemPrompt) {
+      console.log('[ChatInterface] Cannot send:', {
+        hasInput: !!trimmedInput,
+        isStreaming,
+        hasSystemPrompt: !!systemPrompt
+      });
+      return;
+    }
+
+    console.log('[ChatInterface] Sending message:', trimmedInput);
 
     // Prune messages before adding new one
     pruneMessages();
